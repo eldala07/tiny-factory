@@ -6,8 +6,6 @@ import { ToastStack } from './components/ToastStack';
 import { Toolbar } from './components/Toolbar';
 import {
   BUILDING_COSTS,
-  GRID_COLUMNS,
-  GRID_ROWS,
   ITEM_SPEED_CELLS_PER_SECOND,
   MINER_INTERVAL_SECONDS,
   ORE_VALUE,
