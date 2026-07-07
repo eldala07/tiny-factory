@@ -12,6 +12,30 @@ type ToolbarProps = {
 
 const buildingTypes: BuildingType[] = ['miner', 'conveyor', 'seller'];
 
+function ToolIcon({ type, direction }: { type: BuildingType; direction: Direction }) {
+  if (type === 'conveyor') {
+    return (
+      <span className="tool-icon conveyor">
+        <span className={`direction-arrow ${direction}`} />
+      </span>
+    );
+  }
+
+  if (type === 'seller') {
+    return (
+      <span className="tool-icon seller">
+        <span className="seller-coin" />
+      </span>
+    );
+  }
+
+  return (
+    <span className="tool-icon miner">
+      <span className="miner-pick" />
+    </span>
+  );
+}
+
 export function Toolbar({
   coins,
   selectedTool,
@@ -41,9 +65,7 @@ export function Toolbar({
               onClick={() => onSelectTool(type)}
               type="button"
             >
-              <span className={`tool-icon ${type}`}>
-                {type === 'conveyor' ? <span className={`arrow ${conveyorDirection}`} /> : type[0].toUpperCase()}
-              </span>
+              <ToolIcon type={type} direction={conveyorDirection} />
               <span>
                 <strong>{BUILDING_LABELS[type]}</strong>
                 <small>{cost} coins</small>

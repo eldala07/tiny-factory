@@ -103,7 +103,7 @@ h1 {
 
 .stats-bar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(92px, 1fr));
+  grid-template-columns: repeat(4, minmax(92px, 1fr));
   gap: 10px;
 }
 
@@ -139,9 +139,13 @@ h1 {
   font-size: 1.45rem;
 }
 
+.coin-value {
+  animation: coin-bump 520ms cubic-bezier(0.2, 1.4, 0.3, 1);
+}
+
 .game-layout {
   display: grid;
-  grid-template-columns: 220px minmax(520px, 1fr) 240px;
+  grid-template-columns: 220px minmax(560px, 1fr) 240px;
   align-items: start;
   gap: 16px;
   max-width: 1280px;
@@ -216,6 +220,7 @@ h1 {
 }
 
 .tool-icon {
+  position: relative;
   display: grid;
   place-items: center;
   width: 38px;
@@ -312,10 +317,15 @@ h1 {
     #d8e6e1;
   box-shadow: inset 0 -2px 0 rgba(39, 50, 63, 0.05);
   overflow: hidden;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .factory-cell:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.015);
   border-color: rgba(66, 145, 112, 0.55);
   box-shadow:
     inset 0 -2px 0 rgba(39, 50, 63, 0.05),
@@ -332,17 +342,42 @@ h1 {
 }
 
 .placement-ghost {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 54%;
-  height: 54%;
-  border: 1px dashed rgba(53, 75, 88, 0.2);
+  width: 66%;
+  height: 66%;
+  border: 2px dashed rgba(53, 75, 88, 0.2);
   border-radius: 6px;
   opacity: 0;
+  transform: scale(0.86);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    background 120ms ease;
 }
 
 .factory-cell:hover .placement-ghost {
-  opacity: 0.5;
+  opacity: 0.72;
+  transform: scale(1);
+}
+
+.miner-preview {
+  background: rgba(255, 209, 102, 0.36);
+}
+
+.conveyor-preview {
+  background: rgba(146, 210, 255, 0.36);
+}
+
+.seller-preview {
+  background: rgba(141, 227, 180, 0.36);
+}
+
+.delete-preview {
+  background:
+    linear-gradient(45deg, transparent 43%, rgba(124, 61, 50, 0.7) 43%, rgba(124, 61, 50, 0.7) 57%, transparent 57%),
+    linear-gradient(-45deg, transparent 43%, rgba(124, 61, 50, 0.7) 43%, rgba(124, 61, 50, 0.7) 57%, transparent 57%);
 }
 
 .building {
@@ -357,6 +392,7 @@ h1 {
   box-shadow:
     inset 0 -5px 0 rgba(39, 50, 63, 0.14),
     0 8px 16px rgba(39, 50, 63, 0.14);
+  animation: tile-pop 220ms cubic-bezier(0.18, 1.4, 0.34, 1);
 }
 
 .building.miner {
@@ -375,9 +411,66 @@ h1 {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
 }
 
+.miner-pick {
+  position: relative;
+  width: 54%;
+  height: 54%;
+  transform: rotate(-28deg);
+}
+
+.miner-pick::before,
+.miner-pick::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: #26394a;
+}
+
+.miner-pick::before {
+  left: 44%;
+  top: 4%;
+  width: 14%;
+  height: 92%;
+}
+
+.miner-pick::after {
+  left: 12%;
+  top: 8%;
+  width: 76%;
+  height: 18%;
+  box-shadow: 0 3px 0 rgba(255, 255, 255, 0.28);
+}
+
+.miner-gem {
+  position: absolute;
+  right: 18%;
+  bottom: 18%;
+  width: 16%;
+  height: 16%;
+  border-radius: 3px;
+  background: #5d6570;
+  transform: rotate(45deg);
+  box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.14);
+}
+
 .building.conveyor {
   background:
     linear-gradient(180deg, #9fd7fb, #73bce8);
+}
+
+.conveyor-belt {
+  position: absolute;
+  inset: 24% 16%;
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(38, 57, 74, 0.2) 0,
+      rgba(38, 57, 74, 0.2) 5px,
+      transparent 5px,
+      transparent 10px
+    ),
+    rgba(255, 255, 255, 0.28);
 }
 
 .building.seller {
@@ -385,35 +478,78 @@ h1 {
     linear-gradient(135deg, #9ae8bd, #56c894);
 }
 
-.arrow {
+.seller-window {
+  position: absolute;
+  top: 18%;
+  width: 48%;
+  height: 22%;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 -2px 0 rgba(39, 50, 63, 0.12);
+}
+
+.seller-coin {
+  position: relative;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.7), transparent 28%),
+    #ffd166;
+  box-shadow:
+    inset 0 -4px 0 rgba(173, 118, 36, 0.24),
+    0 4px 8px rgba(39, 50, 63, 0.14);
+}
+
+.seller-coin::after {
+  content: "";
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  border: 2px solid rgba(92, 70, 24, 0.24);
+}
+
+.direction-arrow {
+  position: relative;
   display: block;
-  width: 0;
-  height: 0;
+  width: 28px;
+  height: 18px;
   filter: drop-shadow(0 2px 0 rgba(39, 50, 63, 0.16));
 }
 
-.arrow.right {
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-left: 14px solid #26394a;
+.direction-arrow::before,
+.direction-arrow::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  background: #26394a;
+  transform: translateY(-50%);
 }
 
-.arrow.left {
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 14px solid #26394a;
+.direction-arrow::before {
+  left: 2px;
+  width: 16px;
+  height: 7px;
+  border-radius: 999px;
 }
 
-.arrow.up {
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 14px solid #26394a;
+.direction-arrow::after {
+  right: 1px;
+  width: 13px;
+  height: 13px;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
-.arrow.down {
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 14px solid #26394a;
+.direction-arrow.left {
+  transform: rotate(180deg);
+}
+
+.direction-arrow.up {
+  transform: rotate(-90deg);
+}
+
+.direction-arrow.down {
+  transform: rotate(90deg);
 }
 
 .item-layer {
@@ -424,30 +560,79 @@ h1 {
 
 .ore-item {
   position: absolute;
-  width: clamp(9px, 1.4vw, 14px);
-  height: clamp(9px, 1.4vw, 14px);
+  display: grid;
+  place-items: center;
+  width: clamp(12px, 1.6vw, 16px);
+  height: clamp(12px, 1.6vw, 16px);
   border: 2px solid rgba(255, 255, 255, 0.72);
-  border-radius: 4px;
-  background: #5d6570;
+  border-radius: 5px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.5), transparent 30%),
+    #5d6570;
   box-shadow:
     0 4px 8px rgba(39, 50, 63, 0.24),
     inset -2px -2px 0 rgba(0, 0, 0, 0.16);
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
+  transition:
+    left 45ms linear,
+    top 45ms linear;
+  will-change: left, top, transform;
+  animation: ore-wiggle 700ms ease-in-out infinite;
+}
+
+.ore-item span {
+  width: 36%;
+  height: 36%;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .sale-particle {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 1px;
+  height: 1px;
+  transform: translate(-50%, -50%);
+}
+
+.sale-ring,
+.sale-sparks,
+.sale-amount {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.sale-ring {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255, 209, 102, 0.9);
+  border-radius: 50%;
+  animation: sale-ring 720ms ease-out forwards;
+}
+
+.sale-sparks {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: #ffd166;
   box-shadow:
-    14px 0 0 #56c894,
-    -14px 0 0 #f4875a,
-    0 14px 0 #73bce8,
-    0 -14px 0 #ffd166;
-  transform: translate(-50%, -50%) scale(0.25);
-  animation: sell-pop 850ms ease-out forwards;
+    18px 0 0 #56c894,
+    -18px 0 0 #f4875a,
+    0 18px 0 #73bce8,
+    0 -18px 0 #ffd166,
+    13px 13px 0 #f4875a,
+    -13px -13px 0 #56c894;
+  animation: sale-sparks 760ms ease-out forwards;
+}
+
+.sale-amount {
+  color: #1f6d4c;
+  font-size: 0.92rem;
+  font-weight: 900;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+  animation: sale-amount 860ms ease-out forwards;
 }
 
 .toast-stack {
@@ -470,7 +655,59 @@ h1 {
   animation: toast-in 180ms ease-out;
 }
 
-@keyframes sell-pop {
+@keyframes coin-bump {
+  0% {
+    color: #1f3949;
+    transform: translateY(0) scale(1);
+  }
+
+  38% {
+    color: #1f8c61;
+    transform: translateY(-2px) scale(1.16);
+  }
+
+  100% {
+    color: #1f3949;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tile-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ore-wiggle {
+  0%,
+  100% {
+    rotate: -2deg;
+  }
+
+  50% {
+    rotate: 2deg;
+  }
+}
+
+@keyframes sale-ring {
+  from {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.25);
+  }
+}
+
+@keyframes sale-sparks {
   0% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
@@ -482,7 +719,23 @@ h1 {
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -80%) scale(1) rotate(18deg);
+    transform: translate(-50%, -50%) scale(1.2) rotate(24deg);
+  }
+}
+
+@keyframes sale-amount {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(0.82);
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -210%) scale(1.08);
   }
 }
 
@@ -505,7 +758,7 @@ h1 {
   }
 
   .stats-bar {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .game-layout {

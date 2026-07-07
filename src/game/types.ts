@@ -24,6 +24,7 @@ export type Item = {
 
 export type SaleParticle = Position & {
   id: string;
+  amount: number;
 };
 
 export type Toast = {

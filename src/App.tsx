@@ -87,6 +87,44 @@ function updateItemRoute(item: Item, buildings: Building[], deltaSeconds: number
   };
 }
 
+type AdvancedItem = {
+  item: Item | null;
+  soldAt: Position | null;
+};
+
+function advanceItem(item: Item, buildings: Building[], deltaSeconds: number): AdvancedItem {
+  let updatedItem = updateItemRoute(item, buildings, deltaSeconds);
+
+  while (updatedItem && !isSamePosition(updatedItem.from, updatedItem.to) && updatedItem.progress >= 1) {
+    const arrival = updatedItem.to;
+    const overflowProgress = updatedItem.progress - 1;
+    const arrivalBuilding = getBuildingAt(buildings, arrival);
+
+    if (arrivalBuilding?.type === 'seller') {
+      return { item: null, soldAt: arrival };
+    }
+
+    updatedItem = getMovingItem(
+      {
+        ...updatedItem,
+        from: arrival,
+        to: arrival,
+        progress: 0,
+      },
+      buildings,
+    );
+
+    if (updatedItem && !isSamePosition(updatedItem.from, updatedItem.to)) {
+      updatedItem = {
+        ...updatedItem,
+        progress: overflowProgress,
+      };
+    }
+  }
+
+  return { item: updatedItem, soldAt: null };
+}
+
 function countRecentSales(saleTimes: number[]) {
   const cutoff = Date.now() - 60_000;
   return saleTimes.filter((time) => time >= cutoff);
@@ -103,6 +141,7 @@ export default function App() {
   const [selectedTool, setSelectedTool] = useState<Tool>('miner');
   const [conveyorDirection, setConveyorDirection] = useState<Direction>('right');
   const [productionRate, setProductionRate] = useState(0);
+  const [coinPulseKey, setCoinPulseKey] = useState(0);
 
   const buildingsRef = useRef(buildings);
   const minerTimersRef = useRef<Record<string, number>>({});
@@ -165,43 +204,21 @@ export default function App() {
         let soldThisFrame = 0;
 
         for (const item of currentItems) {
-          let updatedItem = updateItemRoute(item, currentBuildings, deltaSeconds);
+          const advancedItem = advanceItem(item, currentBuildings, deltaSeconds);
 
-          if (!updatedItem) {
-            continue;
-          }
-
-          if (isSamePosition(updatedItem.from, updatedItem.to)) {
-            nextItems.push(updatedItem);
-            continue;
-          }
-
-          if (updatedItem.progress < 1) {
-            nextItems.push(updatedItem);
-            continue;
-          }
-
-          const arrival = updatedItem.to;
-          const arrivalBuilding = getBuildingAt(currentBuildings, arrival);
-
-          if (arrivalBuilding?.type === 'seller') {
+          if (advancedItem.soldAt) {
             soldThisFrame += 1;
-            particlesToAdd.push({ id: createId('sale'), x: arrival.x, y: arrival.y });
+            particlesToAdd.push({
+              id: createId('sale'),
+              x: advancedItem.soldAt.x,
+              y: advancedItem.soldAt.y,
+              amount: ORE_VALUE,
+            });
             continue;
           }
 
-          const routedItem = getMovingItem(
-            {
-              ...updatedItem,
-              from: arrival,
-              to: arrival,
-              progress: 0,
-            },
-            currentBuildings,
-          );
-
-          if (routedItem) {
-            nextItems.push(routedItem);
+          if (advancedItem.item) {
+            nextItems.push(advancedItem.item);
           }
         }
 
@@ -239,9 +256,11 @@ export default function App() {
 
         if (soldThisFrame > 0) {
           const earned = soldThisFrame * ORE_VALUE;
-          saleTimesRef.current = countRecentSales([...saleTimesRef.current, Date.now()]);
+          const saleEntries = Array.from({ length: soldThisFrame }, () => Date.now());
+          saleTimesRef.current = countRecentSales([...saleTimesRef.current, ...saleEntries]);
           setProductionRate(saleTimesRef.current.length);
           setCoins((current) => current + earned);
+          setCoinPulseKey((current) => current + 1);
           setStats((current) => ({ itemsSold: current.itemsSold + soldThisFrame }));
           setParticles((current) => [...current, ...particlesToAdd]);
           showToast(`Ore sold +${earned}`);
@@ -321,6 +340,7 @@ export default function App() {
     setItems([]);
     setParticles([]);
     setProductionRate(0);
+    setCoinPulseKey((current) => current + 1);
     setSelectedTool('miner');
     setConveyorDirection('right');
     showToast('Factory reset');
@@ -328,7 +348,13 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <Header coins={coins} stats={stats} productionRate={productionRate} />
+      <Header
+        coins={coins}
+        stats={stats}
+        productionRate={productionRate}
+        coinsPerMinute={productionRate * ORE_VALUE}
+        coinPulseKey={coinPulseKey}
+      />
 
       <section className="game-layout">
         <Toolbar

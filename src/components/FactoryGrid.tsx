@@ -19,16 +19,63 @@ function getItemPosition(item: Item) {
   };
 }
 
+function DirectionArrow({ direction }: { direction: Direction }) {
+  return <span className={`direction-arrow ${direction}`} />;
+}
+
 function BuildingTile({ building }: { building: Building }) {
   if (building.type === 'conveyor') {
     return (
       <div className="building conveyor">
-        <span className={`arrow ${building.direction}`} />
+        <span className="conveyor-belt" />
+        <DirectionArrow direction={building.direction} />
       </div>
     );
   }
 
-  return <div className={`building ${building.type}`}>{building.type === 'miner' ? 'M' : 'S'}</div>;
+  if (building.type === 'seller') {
+    return (
+      <div className="building seller">
+        <span className="seller-window" />
+        <span className="seller-coin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="building miner">
+      <span className="miner-pick" />
+      <span className="miner-gem" />
+    </div>
+  );
+}
+
+function PlacementPreview({ selectedTool, conveyorDirection }: { selectedTool: Tool; conveyorDirection: Direction }) {
+  if (selectedTool === 'delete') {
+    return <span className="placement-ghost delete-preview" />;
+  }
+
+  if (selectedTool === 'conveyor') {
+    return (
+      <span className="placement-ghost conveyor-preview">
+        <DirectionArrow direction={conveyorDirection} />
+      </span>
+    );
+  }
+
+  if (selectedTool === 'seller') {
+    return (
+      <span className="placement-ghost seller-preview">
+        <span className="seller-coin" />
+      </span>
+    );
+  }
+
+  return (
+    <span className="placement-ghost miner-preview">
+      <span className="miner-pick" />
+    </span>
+  );
 }
 
 export function FactoryGrid({
@@ -63,7 +110,11 @@ export function FactoryGrid({
               onClick={() => onCellClick(cell)}
               type="button"
             >
-              {building ? <BuildingTile building={building} /> : <span className="placement-ghost">{selectedTool === 'conveyor' ? <span className={`arrow ${conveyorDirection}`} /> : null}</span>}
+              {building ? (
+                <BuildingTile building={building} />
+              ) : (
+                <PlacementPreview selectedTool={selectedTool} conveyorDirection={conveyorDirection} />
+              )}
             </button>
           );
         })}
@@ -81,7 +132,9 @@ export function FactoryGrid({
                 left: `${(position.x / GRID_COLUMNS) * 100}%`,
                 top: `${(position.y / GRID_ROWS) * 100}%`,
               }}
-            />
+            >
+              <span />
+            </span>
           );
         })}
         {particles.map((particle) => (
@@ -90,9 +143,13 @@ export function FactoryGrid({
             key={particle.id}
             style={{
               left: `${((particle.x + 0.5) / GRID_COLUMNS) * 100}%`,
-              top: `${((particle.y + 0.5) / GRID_ROWS) * 100}%`,
-            }}
-          />
+                top: `${((particle.y + 0.5) / GRID_ROWS) * 100}%`,
+              }}
+          >
+            <span className="sale-ring" />
+            <span className="sale-sparks" />
+            <span className="sale-amount">+{particle.amount}</span>
+          </span>
         ))}
       </div>
     </section>
