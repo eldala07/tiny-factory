@@ -2,14 +2,15 @@ export function HelpPanel() {
   return (
     <aside className="help-panel">
       <div className="panel-title">
-        <span>Controls</span>
-        <strong>Build a route</strong>
+        <span>Shift rules</span>
+        <strong>Survive quotas</strong>
       </div>
       <p>
-        Place a miner, run conveyors from its right side, and end the line at a seller. Press R or use
-        the rotate button before placing conveyors.
+        Every shift has a timer and quota. Missing three quotas triggers an audit crash that strips
+        conveyors.
       </p>
-      <p>Use delete mode to clear a cell. Progress saves in this browser automatically.</p>
+      <p>Short circuits block cells and routes. Use delete mode to clear them before the line starves.</p>
+      <p>Going over power capacity slows every miner and conveyor. Progress saves automatically.</p>
     </aside>
   );
 }

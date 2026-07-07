@@ -1,5 +1,10 @@
-import { DIRECTIONS, STARTING_COINS } from './constants';
-import type { Building, BuildingType, Direction, SavedGame } from './types';
+import {
+  BASE_SHIFT_QUOTA,
+  DIRECTIONS,
+  SHIFT_DURATION_SECONDS,
+  STARTING_COINS,
+} from './constants';
+import type { Building, BuildingType, Direction, SavedGame, ShiftState } from './types';
 
 const STORAGE_KEY = 'tiny-factory-builder-save';
 const buildingTypes: BuildingType[] = ['miner', 'conveyor', 'seller'];
@@ -8,8 +13,16 @@ const defaultGame: SavedGame = {
   coins: STARTING_COINS,
   stats: {
     itemsSold: 0,
+    shiftsCleared: 0,
   },
   buildings: [],
+  shift: {
+    number: 1,
+    timeLeft: SHIFT_DURATION_SECONDS,
+    quota: BASE_SHIFT_QUOTA,
+    soldThisShift: 0,
+    failures: 0,
+  },
 };
 
 function cloneDefaultGame(): SavedGame {
@@ -17,6 +30,7 @@ function cloneDefaultGame(): SavedGame {
     coins: defaultGame.coins,
     stats: { ...defaultGame.stats },
     buildings: [],
+    shift: { ...defaultGame.shift },
   };
 }
 
@@ -45,6 +59,22 @@ function isBuilding(value: unknown): value is Building {
     isFiniteNumber(building.x) &&
     isFiniteNumber(building.y) &&
     isDirection(building.direction)
+  );
+}
+
+function isShiftState(value: unknown): value is ShiftState {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const shift = value as ShiftState;
+
+  return (
+    isFiniteNumber(shift.number) &&
+    isFiniteNumber(shift.timeLeft) &&
+    isFiniteNumber(shift.quota) &&
+    isFiniteNumber(shift.soldThisShift) &&
+    isFiniteNumber(shift.failures)
   );
 }
 
@@ -80,8 +110,18 @@ export function loadGame(): SavedGame {
       coins: Math.max(0, Math.floor(parsed.coins)),
       stats: {
         itemsSold: Math.max(0, Math.floor(parsed.stats.itemsSold)),
+        shiftsCleared: Math.max(0, Math.floor(parsed.stats.shiftsCleared ?? 0)),
       },
       buildings: parsed.buildings,
+      shift: isShiftState(parsed.shift)
+        ? {
+            number: Math.max(1, Math.floor(parsed.shift.number)),
+            timeLeft: Math.max(0, Math.min(SHIFT_DURATION_SECONDS, parsed.shift.timeLeft)),
+            quota: Math.max(1, Math.floor(parsed.shift.quota)),
+            soldThisShift: Math.max(0, Math.floor(parsed.shift.soldThisShift)),
+            failures: Math.max(0, Math.floor(parsed.shift.failures)),
+          }
+        : { ...defaultGame.shift },
     };
   } catch {
     return cloneDefaultGame();

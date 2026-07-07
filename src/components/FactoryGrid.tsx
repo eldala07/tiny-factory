@@ -1,11 +1,12 @@
 import type { CSSProperties } from 'react';
 import { GRID_COLUMNS, GRID_ROWS } from '../game/constants';
 import { cellKey } from '../game/factory';
-import type { Building, Direction, Item, Position, SaleParticle, Tool } from '../game/types';
+import type { Building, Direction, Hazard, Item, Position, SaleParticle, Tool } from '../game/types';
 
 type FactoryGridProps = {
   buildings: Building[];
   items: Item[];
+  hazards: Hazard[];
   particles: SaleParticle[];
   selectedTool: Tool;
   conveyorDirection: Direction;
@@ -81,12 +82,14 @@ function PlacementPreview({ selectedTool, conveyorDirection }: { selectedTool: T
 export function FactoryGrid({
   buildings,
   items,
+  hazards,
   particles,
   selectedTool,
   conveyorDirection,
   onCellClick,
 }: FactoryGridProps) {
   const buildingMap = new Map(buildings.map((building) => [cellKey(building), building]));
+  const hazardMap = new Map(hazards.map((hazard) => [cellKey(hazard), hazard]));
   const cells = Array.from({ length: GRID_COLUMNS * GRID_ROWS }, (_, index) => ({
     x: index % GRID_COLUMNS,
     y: Math.floor(index / GRID_COLUMNS),
@@ -101,20 +104,30 @@ export function FactoryGrid({
       <div className="grid-cells">
         {cells.map((cell) => {
           const building = buildingMap.get(cellKey(cell));
+          const hazard = hazardMap.get(cellKey(cell));
 
           return (
             <button
               aria-label={`Cell ${cell.x + 1}, ${cell.y + 1}`}
-              className={`factory-cell ${building ? 'occupied' : ''} ${selectedTool}`}
+              className={`factory-cell ${building ? 'occupied' : ''} ${hazard ? 'shorted' : ''} ${selectedTool}`}
               key={cellKey(cell)}
               onClick={() => onCellClick(cell)}
               type="button"
             >
               {building ? (
                 <BuildingTile building={building} />
+              ) : hazard ? (
+                <span className="hazard-tile">
+                  <span />
+                </span>
               ) : (
                 <PlacementPreview selectedTool={selectedTool} conveyorDirection={conveyorDirection} />
               )}
+              {building && hazard ? (
+                <span className="hazard-overlay">
+                  <span />
+                </span>
+              ) : null}
             </button>
           );
         })}

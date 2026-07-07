@@ -1,4 +1,4 @@
-import { BUILDING_COSTS, BUILDING_LABELS } from '../game/constants';
+import { BUILDING_COSTS, BUILDING_LABELS, POWER_COSTS } from '../game/constants';
 import type { BuildingType, Direction, Tool } from '../game/types';
 
 type ToolbarProps = {
@@ -68,7 +68,9 @@ export function Toolbar({
               <ToolIcon type={type} direction={conveyorDirection} />
               <span>
                 <strong>{BUILDING_LABELS[type]}</strong>
-                <small>{cost} coins</small>
+                <small>
+                  {cost} coins · {POWER_COSTS[type]} power
+                </small>
               </span>
             </button>
           );
@@ -84,7 +86,7 @@ export function Toolbar({
         onClick={() => onSelectTool('delete')}
         type="button"
       >
-        Delete mode
+        Delete / clear faults
       </button>
 
       <button className="reset-button" onClick={onReset} type="button">
